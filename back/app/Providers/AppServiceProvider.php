@@ -2,6 +2,11 @@
 
 namespace App\Providers;
 
+use App\Repositories\DbRepository;
+use App\Repositories\Product\DbProductRepository;
+use App\Repositories\Product\ProductRepository;
+use App\Repositories\Repository;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,7 +16,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(
+            Repository::class,
+            DbRepository::class,
+        );
+        $this->app->bind(
+            ProductRepository::class,
+            DbProductRepository::class,
+        );
     }
 
     /**
@@ -19,6 +31,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        JsonResource::withoutWrapping();
     }
 }
