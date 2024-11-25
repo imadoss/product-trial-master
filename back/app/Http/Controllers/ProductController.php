@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\Helper;
 use App\Http\Resources\ProductCollection;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Repositories\Product\ProductRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -25,7 +27,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-        return new ProductCollection($this->product->getAll());
+        return new ProductCollection($this->product->getAllProducts());
     }
 
     /**
@@ -34,18 +36,15 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         try {
-            /* Le démarrage d'une transaction de base des données dans 
-            ce cas n'est pas vraiment très utile vu qu'il s'agit d'une seul opération
-            DB::beginTransaction(); 
-            DB::commit(); */
-
+            DB::beginTransaction();
             $data = $request->all();
-
+            Helper::formatDataNullable($data);
             $rules = [
                 'name' => ["required", "unique:products"],
                 'description' => ["present"],
                 'category' => ["present"],
                 'price' => ["required", "decimal:0"],
+                'imageFile' => 'nullable|file|mimes:jpeg,png,jpg,gif|max:2048',
             ];
 
             $messages = [
@@ -61,10 +60,22 @@ class ProductController extends Controller
                 return response()->json(['errors' => $validator->errors()], 422);
             }
 
-            $product = $this->product->create($data);
+            if ($request->hasFile("imageFile")) {
+                $directory = '/images/products';
+                if (!Storage::disk('public')->exists($directory)) {
+                    Storage::disk('public')->makeDirectory($directory);
+                }
+                $file = $request->file("imageFile");
+                $fileName = time() . '.' . $file->getClientOriginalExtension();
+                $file->storeAs($directory, $fileName, "public");
+                $data["image"] = '/images/products/' . $fileName;
+            }
 
+            $product = $this->product->create($data);
+            DB::commit();
             return new ProductResource($product);
         } catch (\Throwable $th) {
+            DB::rollBack();
             return response()->json(["errors" => $th->getMessage()], 500);
         }
     }
@@ -75,14 +86,15 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         try {
-
+            DB::beginTransaction();
             $data = $request->all();
-
+            Helper::formatDataNullable($data);
             $rules = [
-                'name' => ["required", "unique:products,name,".$product->id],
+                'name' => ["required", "unique:products,name," . $product->id],
                 'description' => ["present"],
                 'category' => ["present"],
                 'price' => ["required", "decimal:0"],
+                'imageFile' => 'nullable|file|mimes:jpeg,png,jpg,gif|max:2048',
             ];
 
             $messages = [
@@ -97,11 +109,24 @@ class ProductController extends Controller
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
             }
-
+            if ($request->hasFile("imageFile")) {
+                if ($product->image && Storage::disk("public")->exists($product->image)) {
+                    Storage::disk('public')->delete($product->image);
+                }
+                $directory = '/images/products';
+                if (!Storage::disk('public')->exists($directory)) {
+                    Storage::disk('public')->makeDirectory($directory);
+                }
+                $file = $request->file("imageFile");
+                $fileName = time() . '.' . $file->getClientOriginalExtension();
+                $file->storeAs($directory, $fileName, "public");
+                $data["image"] = '/images/products/' . $fileName;
+            }
             $product->update($data);
-
+            DB::commit();
             return new ProductResource($product);
         } catch (\Throwable $th) {
+            DB::rollBack();
             return response()->json(["errors" => $th->getMessage()], 500);
         }
     }
@@ -111,8 +136,11 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
+        $imgPath = $product->image;
         $product->delete();
-
+        if ($imgPath && Storage::disk("public")->exists($imgPath)) {
+            Storage::disk('public')->delete($imgPath);
+        }
         return response()->json(['message' => 'Le produit a bien été supprimé'], 201);
     }
 }
