@@ -1,0 +1,21 @@
+.fileupload-container {
+  ::ng-deep .p-fileupload {
+    .p-fileupload-content {
+      padding: 5px !important;
+    }
+    .p-fileupload-buttonbar {
+      padding: 5px !important;
+      .p-button {
+        width: 32px;
+        height: 32px;
+      }
+    }
+  }
+}
+.card {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  border-color: #dfe7ef !important;
+}

@@ -13,54 +13,13 @@ import { ButtonModule } from "primeng/button";
 import { DropdownModule } from "primeng/dropdown";
 import { InputNumberModule } from "primeng/inputnumber";
 import { InputTextModule } from "primeng/inputtext";
-import { InputTextareaModule } from 'primeng/inputtextarea';
+import { InputTextareaModule } from "primeng/inputtextarea";
+import { RatingModule } from "primeng/rating";
+import { FileUploadComponent } from "app/products/ui/file-upload/file-upload.component";
 
 @Component({
   selector: "app-product-form",
-  template: `
-    <form #form="ngForm" (ngSubmit)="onSave()">
-      <div class="form-field">
-        <label for="name">Nom</label>
-        <input pInputText
-          type="text"
-          id="name"
-          name="name"
-          [(ngModel)]="editedProduct().name"
-          required>
-      </div>
-      <div class="form-field">
-        <label for="price">Prix</label>
-        <p-inputNumber 
-          [(ngModel)]="editedProduct().price" 
-          name="price"
-          mode="decimal"
-          required/> 
-      </div>
-      <div class="form-field">
-        <label for="description">Description</label>
-        <textarea pInputTextarea 
-          id="description"
-          name="description"
-          rows="5" 
-          cols="30" 
-          [(ngModel)]="editedProduct().description">
-        </textarea>
-      </div>      
-      <div class="form-field">
-        <label for="description">Catégorie</label>
-        <p-dropdown 
-          [options]="categories" 
-          [(ngModel)]="editedProduct().category" 
-          name="category"
-          appendTo="body"
-        />
-      </div>
-      <div class="flex justify-content-between">
-        <p-button type="button" (click)="onCancel()" label="Annuler" severity="help"/>
-        <p-button type="submit" [disabled]="!form.valid" label="Enregistrer" severity="success"/>
-      </div>
-    </form>
-  `,
+  templateUrl: "./product-form.component.html",
   styleUrls: ["./product-form.component.scss"],
   standalone: true,
   imports: [
@@ -70,14 +29,17 @@ import { InputTextareaModule } from 'primeng/inputtextarea';
     InputNumberModule,
     InputTextareaModule,
     DropdownModule,
+    FileUploadComponent,
+    RatingModule,
   ],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class ProductFormComponent {
   public readonly product = input.required<Product>();
 
   @Output() cancel = new EventEmitter<void>();
   @Output() save = new EventEmitter<Product>();
+  @Output() uploadedFilesChange = new EventEmitter<Product>();
 
   public readonly editedProduct = computed(() => ({ ...this.product() }));
 
@@ -88,11 +50,22 @@ export class ProductFormComponent {
     { value: "Electronics", label: "Electronics" },
   ];
 
+  public readonly statuses: SelectItem[] = [
+    { value: "INSTOCK", label: "En stock" },
+    { value: "LOWSTOCK", label: "Stock faible" },
+    { value: "OUTOFSTOCK", label: "En rupture" },
+  ];
+
   onCancel() {
     this.cancel.emit();
   }
 
   onSave() {
     this.save.emit(this.editedProduct());
+  }
+
+  onFileSelected(file: any) {
+    this.editedProduct().image = file.objectURL;
+    this.editedProduct().imageFile = file;
   }
 }

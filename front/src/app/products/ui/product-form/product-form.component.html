@@ -1,0 +1,101 @@
+<form #form="ngForm" (ngSubmit)="onSave()">
+  <div class="flex flex-row gap-2">
+    <div class="w-6">
+      <div class="form-field">
+        <label for="image">Image</label>
+        <app-file-upload
+          [previewUrl]="editedProduct().image"
+          (fileSelected)="onFileSelected($event)"
+        />
+      </div>
+    </div>
+    <div class="w-6">
+      <div class="form-field">
+        <label for="name">Nom</label>
+        <input
+          pInputText
+          type="text"
+          id="name"
+          name="name"
+          [(ngModel)]="editedProduct().name"
+          required
+        />
+      </div>
+      <div class="form-field">
+        <label for="description">Rating</label>
+        <p-rating
+          [(ngModel)]="editedProduct().rating"
+          name="rating"
+          [cancel]="false"
+        />
+      </div>
+    </div>
+  </div>
+  <div class="flex flex-row gap-2">
+    <div class="form-field w-6">
+      <label for="price">Prix</label>
+      <p-inputNumber
+        [(ngModel)]="editedProduct().price"
+        name="price"
+        mode="decimal"
+        required
+      />
+    </div>
+    <div class="form-field w-6">
+      <label for="quantity">Quantité</label>
+      <p-inputNumber
+        [(ngModel)]="editedProduct().quantity"
+        name="quantity"
+        mode="decimal"
+        required
+      />
+    </div>
+  </div>
+  <div class="flex flex-row gap-2">
+    <div class="form-field w-6">
+      <label for="description">Catégorie</label>
+      <p-dropdown
+        [options]="categories"
+        [(ngModel)]="editedProduct().category"
+        name="category"
+        appendTo="body"
+      />
+    </div>
+    <div class="form-field w-6">
+      <label for="description">Statut</label>
+      <p-dropdown
+        [options]="statuses"
+        [(ngModel)]="editedProduct().inventoryStatus"
+        name="inventoryStatus"
+        appendTo="body"
+      />
+    </div>
+  </div>
+  <div class="form-field">
+    <label for="description">Description</label>
+    <textarea
+      pInputTextarea
+      id="description"
+      name="description"
+      rows="5"
+      cols="30"
+      [(ngModel)]="editedProduct().description"
+    >
+    </textarea>
+  </div>
+
+  <div class="flex justify-content-between">
+    <p-button
+      type="button"
+      (click)="onCancel()"
+      label="Annuler"
+      severity="help"
+    />
+    <p-button
+      type="submit"
+      [disabled]="!form.valid"
+      label="Enregistrer"
+      severity="success"
+    />
+  </div>
+</form>

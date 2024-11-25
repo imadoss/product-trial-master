@@ -6,4 +6,14 @@
     .p-dropdown, .p-inputnumber {
         width: 100%;
     }
+    .p-rating{
+        .p-rating-item{
+            margin: 5px;
+            .p-rating-icon{
+                width: 20px;
+                height: 20px;
+            }
+
+        }
+    }
 }
