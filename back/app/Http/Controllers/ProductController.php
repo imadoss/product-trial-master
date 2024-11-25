@@ -7,7 +7,6 @@ use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Repositories\Product\ProductRepository;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
@@ -25,7 +24,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-        return new ProductCollection($this->product->getAll());
+        return new ProductCollection($this->product->getAllProducts());
     }
 
     /**
@@ -79,7 +78,7 @@ class ProductController extends Controller
             $data = $request->all();
 
             $rules = [
-                'name' => ["required", "unique:products,name,".$product->id],
+                'name' => ["required", "unique:products,name," . $product->id],
                 'description' => ["present"],
                 'category' => ["present"],
                 'price' => ["required", "decimal:0"],
